@@ -5,80 +5,97 @@
  * @author     Andreas Gohr <andi@splitbrain.org>
  */
 
-if(!defined('DOKU_INC')) define('DOKU_INC',realpath(dirname(__FILE__).'/../../').'/');
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'syntax.php');
+if (!defined('DOKU_INC')) {
+    define('DOKU_INC', realpath(dirname(__FILE__) . '/../../') . '/');
+}
 
+if (!defined('DOKU_PLUGIN')) {
+    define('DOKU_PLUGIN', DOKU_INC . 'lib/plugins/');
+}
+
+require_once(DOKU_PLUGIN . 'syntax.php');
 
 /**
  * All DokuWiki plugins to extend the parser/rendering mechanism
  * need to inherit from this class
  */
-class syntax_plugin_disqus extends DokuWiki_Syntax_Plugin {
-
+class syntax_plugin_disqus extends DokuWiki_Syntax_Plugin 
+{
     /**
      * What kind of syntax are we?
      */
-    function getType(){
+    public function getType()
+    {
         return 'substition';
     }
 
-    function getPType(){
+    public function getPType()
+    {
         return 'block';
     }
 
     /**
      * Where to sort in?
      */
-    function getSort(){
+    public function getSort()
+    {
         return 160;
     }
 
     /**
      * Connect pattern to lexer
      */
-    function connectTo($mode) {
-      $this->Lexer->addSpecialPattern('~~DISQUS~~',$mode,'plugin_disqus');
+    public function connectTo($mode) 
+    {
+        $this->Lexer->addSpecialPattern('~~DISQUS~~', $mode, 'plugin_disqus');
     }
 
     /**
      * Handle the match
      */
-    function handle($match, $state, $pos, &$handler){
+    public function handle($match, $state, $pos, $handler)
+    {
         return array();
     }
 
     /**
      * Create output
      */
-    function render($mode, &$R, $data) {
-        if($mode != 'xhtml') return false;
-        $R->doc .= $this->_disqus();
+    public function render($mode, $renderer, $data) 
+    {
+        if ($mode != 'xhtml') {
+            return false;
+        }
+
+        $renderer->doc .= $this->_disqus();
         return true;
     }
 
-    function _disqus(){
+    protected function _disqus()
+    {
         global $ID;
         global $INFO;
 
-        $doc = '';
-        $doc .= '<script charset="utf-8" type="text/javascript">
-                    <!--//--><![CDATA[//><!--'."\n";
-        if($this->getConf('devel'))
-            $doc .= 'var disqus_developer = '.$this->getConf('devel').";\n";
-        $doc .= "var disqus_url     = '".wl($ID,'',true)."';\n";
-        $doc .= "var disqus_title   = '".addslashes($INFO['meta']['title'])."';\n";
-        $doc .= "var disqus_message = '".addslashes($INFO['meta']['abstract'])."';\n";
-        $doc .= 'var disqus_container_id = \'disqus__thread\';
-                    //--><!]]>
-                    </script>';
-        $doc .= '<div id="disqus__thread"></div>';
-        $doc .= '<script type="text/javascript" src="http://disqus.com/forums/'.$this->getConf('shortname').'/embed.js"></script>';
-        $doc .= '<noscript><a href="http://'.$this->getConf('shortname').'.disqus.com/?url=ref">View the discussion thread.</a></noscript>';
+        $disqusScript =<<<HTML
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = '%s';
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>
+    Please enable JavaScript to view the 
+    <a href="https://disqus.com/?ref_noscript" rel="nofollow">
+        comments powered by Disqus.
+    </a>
+</noscript>
+HTML;
 
-        return $doc;
+        return sprintf($disqusScript, $this->getConf('shortname'));
     }
-
 }
-
-//Setup VIM: ex: et ts=4 enc=utf-8 :
