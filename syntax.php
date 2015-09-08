@@ -73,9 +73,6 @@ class syntax_plugin_disqus extends DokuWiki_Syntax_Plugin
 
     protected function _disqus()
     {
-        global $ID;
-        global $INFO;
-
         $disqusScript =<<<HTML
 <div id="disqus_thread"></div>
 <script type="text/javascript">
